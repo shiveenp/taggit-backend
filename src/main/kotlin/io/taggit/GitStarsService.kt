@@ -69,7 +69,6 @@ object GitStarsService {
         val currentUserRepoIds = DAO.getUserRepos(userId).map { it.repoId }
         getUserStargazingData(token).forEach {
             if (currentUserRepoIds.notContains(it.id)) {
-                println("repo ${it.name} was not previously there")
                 // only add the repo for the user if not previously added
                 DAO.insertRepo(it, userId)
             }
