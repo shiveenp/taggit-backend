@@ -151,6 +151,7 @@ object DAO {
                 GitStarsRepo(
                     id = row[RepoTable.id]!!,
                     userId = row[RepoTable.userId]!!,
+                    repoId = row[RepoTable.repoId]!!,
                     repoName = row[RepoTable.repoName]!!,
                     githubLink = row[RepoTable.githubLink]!!,
                     githubDescription = row[RepoTable.githubDescription],
@@ -181,6 +182,7 @@ object DAO {
                     GitStarsRepo(
                         id = it.getObject("id") as UUID,
                         userId = it.getObject("user_id") as UUID,
+                        repoId = it.getLong("repoId"),
                         repoName = it.getString("repo_name"),
                         githubLink = it.getString("github_link"),
                         githubDescription = it.getString("github_description"),
@@ -216,6 +218,7 @@ object DAO {
                 GitStarsRepo(
                     id = row[RepoTable.id]!!,
                     userId = row[RepoTable.userId]!!,
+                    repoId = row[RepoTable.repoId]!!,
                     repoName = row[RepoTable.repoName]!!,
                     githubLink = row[RepoTable.githubLink]!!,
                     githubDescription = row[RepoTable.githubDescription]!!,
@@ -250,6 +253,7 @@ object DAO {
                 GitStarsRepo(
                     id = row[RepoTable.id]!!,
                     userId = row[RepoTable.userId]!!,
+                    repoId = row[RepoTable.repoId]!!,
                     repoName = row[RepoTable.repoName]!!,
                     githubLink = row[RepoTable.githubLink]!!,
                     githubDescription = row[RepoTable.githubDescription]!!,

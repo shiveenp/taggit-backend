@@ -49,6 +49,7 @@ data class Metadata(
 data class GitStarsRepo(
     val id: UUID,
     val userId: UUID,
+    val repoId: Long,
     val repoName: String,
     val githubLink: String,
     val githubDescription: String?,
