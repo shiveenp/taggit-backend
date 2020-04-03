@@ -80,7 +80,7 @@ object DAO {
             UsersTable.update {
                 UsersTable.userName to githubUser.name
                 UsersTable.githubUserName to githubUser.login
-                UsersTable.githubUserId to githubUser.id
+                UsersTable.email to githubUser.email
                 UsersTable.accessToken to newAccessToken
                 UsersTable.tokenRefreshedAt to LocalDateTime.now()
                 UsersTable.lastLoginAt to LocalDateTime.now()
@@ -90,7 +90,7 @@ object DAO {
             UsersTable.update {
                 UsersTable.userName to githubUser.name
                 UsersTable.githubUserName to githubUser.login
-                UsersTable.githubUserId to githubUser.id
+                UsersTable.email to githubUser.email
                 UsersTable.lastLoginAt to LocalDateTime.now()
             }
         }
