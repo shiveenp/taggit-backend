@@ -1,8 +1,25 @@
 package main.kotlin.io.taggit.common
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import org.http4k.core.Body
+import org.http4k.format.Jackson.auto
+import org.http4k.lens.Query
+import org.http4k.lens.int
+import org.http4k.lens.string
 import java.time.LocalDateTime
 import java.util.*
+
+object Constants {
+    val DEFAULT_PAGE_NM = 0
+    val DEFAULT_PAGE_SIZE = 20
+}
+
+object Lenses {
+    val tagStringLens = Body.auto<TagInput>().toLens()
+    val tagSearchQueryLens = Query.string().multi.required("tag")
+    val pageNumberQueryLens = Query.int().optional("pageNm")
+    val pageSizeQueryLens = Query.int().optional("pageSize")
+}
 
 data class StargazingResponse(
     val id: Long,
@@ -64,3 +81,9 @@ data class RepoSyncJob(
     val createdAt: LocalDateTime
 )
 
+data class PagedResponse<T>(
+    val data: List<T>,
+    val pageNum: Int,
+    val pageSize: Int,
+    val total: Int
+)

@@ -41,12 +41,16 @@ object GitStarsService {
         return getGitStarUser(userId)[0]
     }
 
-    fun getUserRepos(userId: UUID): List<GitStarsRepo> {
+    fun getUserRepos(userId: UUID, pageNm: Int?, pageSize: Int?): PagedResponse<GitStarsRepo> {
         return try {
-            DAO.getUserRepos(userId)
+            DAO.getUserReposPaged(
+                userId,
+                pageNm ?: Constants.DEFAULT_PAGE_NM,
+                pageSize ?: Constants.DEFAULT_PAGE_SIZE
+            )
         } catch (ex: Exception) {
             println(ex.localizedMessage)
-            emptyList()
+            PagedResponse(emptyList(), Constants.DEFAULT_PAGE_NM, Constants.DEFAULT_PAGE_SIZE, 0)
         }
     }
 
@@ -66,7 +70,8 @@ object GitStarsService {
     }
 
     fun updateUserRepos(userId: UUID, token: String) {
-        val currentUserRepoIds = DAO.getUserRepos(userId).map { it.repoId }
+        val currentUserRepoIds = DAO.getUserRepos(userId)
+            .map { it.repoId }
         getUserStargazingData(token).forEach {
             if (currentUserRepoIds.notContains(it.id)) {
                 // only add the repo for the user if not previously added

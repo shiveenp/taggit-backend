@@ -18,6 +18,10 @@ import main.kotlin.io.taggit.common.AppProperties.githubClientSecret
 import main.kotlin.io.taggit.common.AppProperties.rootServiceUrl
 import main.kotlin.io.taggit.common.AppProperties.uiURL
 import main.kotlin.io.taggit.common.GithubUser
+import main.kotlin.io.taggit.common.Lenses.pageNumberQueryLens
+import main.kotlin.io.taggit.common.Lenses.pageSizeQueryLens
+import main.kotlin.io.taggit.common.Lenses.tagSearchQueryLens
+import main.kotlin.io.taggit.common.Lenses.tagStringLens
 import main.kotlin.io.taggit.common.TagInput
 import main.kotlin.io.taggit.common.toUUID
 import org.flywaydb.core.Flyway
@@ -60,9 +64,6 @@ fun main() {
 
     val oauthPersistence = InsecureCookieBasedOAuthPersistence("taggit-dev")
 
-    val tagStringLens = Body.auto<TagInput>().toLens()
-    val tagSearchQueryLens = Query.string().multi.required("tag")
-
     val oauthProvider = OAuthProvider.gitHub(
         ApacheClient(),
         Credentials(githubClientId(env), githubClientSecret(env)),
@@ -87,7 +88,9 @@ fun main() {
             },
             "/user/{userId}/repos" bind GET to { request ->
                 Response(OK).body(getUserRepos(request.path("userId")?.toUUID()
-                    ?: throw IllegalArgumentException("userId param cannot be left empty")).asJsonObject().asPrettyJsonString())
+                    ?: throw IllegalArgumentException("userId param cannot be left empty"),
+                    pageNumberQueryLens(request),
+                    pageSizeQueryLens(request)).asJsonObject().asPrettyJsonString())
             },
             "/user/{userId}/sync" bind POST to { request ->
                 val syncJobId = syncUserRepos(request.path("userId")?.toUUID()
