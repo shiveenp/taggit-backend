@@ -1,0 +1,42 @@
+name: Production Build
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Build deployment artefact
+        run: ./gradlew build
+
+      - name: Get timestamp
+        uses: gerred/actions/current-time@master
+        id: current-time
+
+      - name: Run string replace
+        uses: frabert/replace-string-action@master
+        id: format-time
+        with:
+          pattern: '[:\.]+'
+          string: "${{ steps.current-time.outputs.time }}"
+          replace-with: '-'
+          flags: 'g'
+
+      - name: Deploy to EB
+        uses: einaregilsson/beanstalk-deploy@v9
+        with:
+          aws-access-key-id: ${{ secrets.TAGGIT_EB_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.TAGGIT_EB_SECRET_ACCESS_KEY }}
+          aws-region: ap-southeast-2
+          application_name: taggit
+          environment_name: Taggit-env-1
+          version_label: "taggit-api-${{ steps.format-time.outputs.replaced }}"
+          deployment_package: ./build/libs/taggit-api-0.0.1-all.jar
+
+      - name: Deployed successfully!
+        run: echo App deployed to ELB 🚀
