@@ -143,6 +143,39 @@ object DAO {
         }
     }
 
+    fun getUserReposPaged(userId: UUID, offset: Int, limit: Int): PagedResponse<GitStarsRepo> {
+        val nativeSql = """
+            select *, count(*) OVER() AS full_count 
+            from repo r 
+            where r.user_id = '$userId'
+            order by r.repo_name asc
+            offset '$offset'
+            limit '$limit'
+        """.trimIndent()
+
+        var total = 0
+        var repoList: List<GitStarsRepo> = mutableListOf<GitStarsRepo>()
+
+        db.useConnection { conn ->
+            conn.prepareStatement(nativeSql).use { ps ->
+                repoList = ps.executeQuery().iterable().map {
+                    total = it.getInt("full_count")
+                    GitStarsRepo(
+                        id = it.getObject("id") as UUID,
+                        userId = it.getObject("user_id") as UUID,
+                        repoId = it.getLong("repo_id"),
+                        repoName = it.getString("repo_name"),
+                        githubLink = it.getString("github_link"),
+                        githubDescription = it.getString("github_description"),
+                        ownerAvatarUrl = it.getString("owner_avatar_url"),
+                        metadata = it.getString("metadata")?.asJsonObject()?.asA()
+                    )
+                }
+            }
+        }
+        return PagedResponse(repoList, offset, limit, total)
+    }
+
     fun getUserRepos(userId: UUID): List<GitStarsRepo> {
         return RepoTable.select()
             .where { RepoTable.userId eq userId }
@@ -281,7 +314,8 @@ object DAO {
                     row[RepoSyncJobsTable.id]!!,
                     row[RepoSyncJobsTable.userId]!!,
                     row[RepoSyncJobsTable.completed]!!,
-                    row[RepoSyncJobsTable.createdAt]!!)
+                    row[RepoSyncJobsTable.createdAt]!!
+                )
             }[0]
     }
 
@@ -297,7 +331,8 @@ object DAO {
                     row[RepoSyncJobsTable.id]!!,
                     row[RepoSyncJobsTable.userId]!!,
                     row[RepoSyncJobsTable.completed]!!,
-                    row[RepoSyncJobsTable.createdAt]!!)
+                    row[RepoSyncJobsTable.createdAt]!!
+                )
             }[0]
     }
 
@@ -315,5 +350,4 @@ object DAO {
             RepoSyncJobsTable.completed to false
         }
     }
-
 }
