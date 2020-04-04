@@ -5,7 +5,7 @@ import main.kotlin.io.taggit.GitStarsService.addTag
 import main.kotlin.io.taggit.GitStarsService.deleteTag
 import main.kotlin.io.taggit.GitStarsService.getAllTags
 import main.kotlin.io.taggit.GitStarsService.getUser
-import main.kotlin.io.taggit.GitStarsService.getUserRepos
+import main.kotlin.io.taggit.GitStarsService.getUserReposPaged
 import main.kotlin.io.taggit.GitStarsService.loginOrRegister
 import main.kotlin.io.taggit.GitStarsService.searchUserRepoByTags
 import main.kotlin.io.taggit.GitStarsService.syncUserRepos
@@ -22,7 +22,6 @@ import main.kotlin.io.taggit.common.Lenses.pageNumberQueryLens
 import main.kotlin.io.taggit.common.Lenses.pageSizeQueryLens
 import main.kotlin.io.taggit.common.Lenses.tagSearchQueryLens
 import main.kotlin.io.taggit.common.Lenses.tagStringLens
-import main.kotlin.io.taggit.common.TagInput
 import main.kotlin.io.taggit.common.toUUID
 import org.flywaydb.core.Flyway
 import org.http4k.client.ApacheClient
@@ -36,9 +35,6 @@ import org.http4k.filter.CorsPolicy
 import org.http4k.filter.ServerFilters
 import org.http4k.format.Jackson.asJsonObject
 import org.http4k.format.Jackson.asPrettyJsonString
-import org.http4k.format.Jackson.auto
-import org.http4k.lens.Query
-import org.http4k.lens.string
 import org.http4k.routing.bind
 import org.http4k.routing.path
 import org.http4k.routing.routes
@@ -87,7 +83,7 @@ fun main() {
                     ?: throw IllegalArgumentException("userId param cannot be left empty")).asJsonObject().asPrettyJsonString())
             },
             "/user/{userId}/repos" bind GET to { request ->
-                Response(OK).body(getUserRepos(request.path("userId")?.toUUID()
+                Response(OK).body(getUserReposPaged(request.path("userId")?.toUUID()
                     ?: throw IllegalArgumentException("userId param cannot be left empty"),
                     pageNumberQueryLens(request),
                     pageSizeQueryLens(request)).asJsonObject().asPrettyJsonString())

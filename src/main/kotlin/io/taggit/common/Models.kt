@@ -10,8 +10,10 @@ import java.time.LocalDateTime
 import java.util.*
 
 object Constants {
-    val DEFAULT_PAGE_NM = 0
-    val DEFAULT_PAGE_SIZE = 20
+    // For the view api, the default page number will always be one, however we decrement this value before hitting the
+    // database.
+    const val DEFAULT_PAGE_NM = 1
+    const val DEFAULT_PAGE_SIZE = 50
 }
 
 object Lenses {

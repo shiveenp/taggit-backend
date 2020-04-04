@@ -20,6 +20,7 @@ import me.liuwj.ktorm.dsl.eq
 import me.liuwj.ktorm.dsl.select
 import me.liuwj.ktorm.dsl.where
 import java.util.*
+import kotlin.coroutines.Continuation
 
 object GitStarsService {
     fun loginOrRegister(token: String): UUID {
@@ -41,13 +42,24 @@ object GitStarsService {
         return getGitStarUser(userId)[0]
     }
 
-    fun getUserRepos(userId: UUID, pageNm: Int?, pageSize: Int?): PagedResponse<GitStarsRepo> {
+    fun getUserReposPaged(userId: UUID, pageNm: Int?, pageSize: Int?): PagedResponse<GitStarsRepo> {
+        val limit = (pageSize ?: Constants.DEFAULT_PAGE_SIZE).let {
+            if (it <= 0) {
+                throw IllegalArgumentException("pageSize field need to be greater than or equal to 1")
+            } else {
+                it
+            }
+        }
+        val offset = (pageNm ?: Constants.DEFAULT_PAGE_NM).let {
+            if (it <= 0) {
+                throw IllegalArgumentException("pageNm fields need to be greater than or equal to 1")
+            } else {
+                // reduce by 1 since the database offset is zero indexed
+                (it - 1).times(limit)
+            }
+        }
         return try {
-            DAO.getUserReposPaged(
-                userId,
-                pageNm ?: Constants.DEFAULT_PAGE_NM,
-                pageSize ?: Constants.DEFAULT_PAGE_SIZE
-            )
+            DAO.getUserReposPaged(userId, offset, limit)
         } catch (ex: Exception) {
             println(ex.localizedMessage)
             PagedResponse(emptyList(), Constants.DEFAULT_PAGE_NM, Constants.DEFAULT_PAGE_SIZE, 0)
