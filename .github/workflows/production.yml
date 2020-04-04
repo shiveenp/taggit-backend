@@ -30,8 +30,8 @@ jobs:
       - name: Deploy to EB
         uses: einaregilsson/beanstalk-deploy@v9
         with:
-          aws_access_key_id: ${{ secrets.TAGGIT_EB_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.TAGGIT_EB_SECRET_ACCESS_KEY }}
+          aws_access_key: ${{ secrets.TAGGIT_EB_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.TAGGIT_EB_SECRET_ACCESS_KEY }}
           region: ap-southeast-2
           application_name: taggit
           environment_name: Taggit-env-1
