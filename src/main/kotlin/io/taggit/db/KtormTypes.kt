@@ -1,4 +1,4 @@
-package main.kotlin.io.taggit.db
+package io.taggit.db
 
 import com.fasterxml.jackson.databind.JavaType
 import com.fasterxml.jackson.databind.ObjectMapper

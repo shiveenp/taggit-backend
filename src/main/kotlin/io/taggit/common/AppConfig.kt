@@ -1,4 +1,4 @@
-package main.kotlin.io.taggit.common
+package io.taggit.common
 
 import org.http4k.cloudnative.env.Environment
 import org.http4k.cloudnative.env.EnvironmentKey

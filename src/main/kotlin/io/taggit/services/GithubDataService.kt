@@ -1,7 +1,7 @@
-package main.kotlin.io.taggit.services
+package io.taggit.services
 
-import main.kotlin.io.taggit.common.GithubUser
-import main.kotlin.io.taggit.common.StargazingResponse
+import io.taggit.common.GithubUser
+import io.taggit.common.StargazingResponse
 import mu.KotlinLogging
 import org.http4k.client.ApacheClient
 import org.http4k.core.Body

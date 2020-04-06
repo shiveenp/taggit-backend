@@ -1,30 +1,25 @@
 package io.taggit
 
 import io.taggit.db.DbMigrationService
-import main.kotlin.io.taggit.db.DAO.getRepoSyncJobUsingId
-import main.kotlin.io.taggit.services.GitStarsService.addTag
-import main.kotlin.io.taggit.services.GitStarsService.deleteTag
-import main.kotlin.io.taggit.services.GitStarsService.getAllTags
-import main.kotlin.io.taggit.services.GitStarsService.getUser
-import main.kotlin.io.taggit.services.GitStarsService.getUserReposPaged
-import main.kotlin.io.taggit.services.GitStarsService.loginOrRegister
-import main.kotlin.io.taggit.services.GitStarsService.searchUserRepoByTags
-import main.kotlin.io.taggit.services.GitStarsService.syncUserRepos
-import main.kotlin.io.taggit.common.AppProperties.dbPassword
-import main.kotlin.io.taggit.common.AppProperties.dbUrl
-import main.kotlin.io.taggit.common.AppProperties.dbUser
-import main.kotlin.io.taggit.common.AppProperties.env
-import main.kotlin.io.taggit.common.AppProperties.githubClientId
-import main.kotlin.io.taggit.common.AppProperties.githubClientSecret
-import main.kotlin.io.taggit.common.AppProperties.rootServiceUrl
-import main.kotlin.io.taggit.common.AppProperties.uiURL
-import main.kotlin.io.taggit.common.GithubUser
-import main.kotlin.io.taggit.common.Lenses.pageNumberQueryLens
-import main.kotlin.io.taggit.common.Lenses.pageSizeQueryLens
-import main.kotlin.io.taggit.common.Lenses.tagSearchQueryLens
-import main.kotlin.io.taggit.common.Lenses.tagStringLens
-import main.kotlin.io.taggit.common.toUUID
-import org.flywaydb.core.Flyway
+import io.taggit.db.DAO.getRepoSyncJobUsingId
+import io.taggit.services.GitStarsService.addTag
+import io.taggit.services.GitStarsService.deleteTag
+import io.taggit.services.GitStarsService.getAllTags
+import io.taggit.services.GitStarsService.getUser
+import io.taggit.services.GitStarsService.getUserReposPaged
+import io.taggit.services.GitStarsService.loginOrRegister
+import io.taggit.services.GitStarsService.searchUserRepoByTags
+import io.taggit.services.GitStarsService.syncUserRepos
+import io.taggit.common.AppProperties.env
+import io.taggit.common.AppProperties.githubClientId
+import io.taggit.common.AppProperties.githubClientSecret
+import io.taggit.common.AppProperties.rootServiceUrl
+import io.taggit.common.AppProperties.uiURL
+import io.taggit.common.Lenses.pageNumberQueryLens
+import io.taggit.common.Lenses.pageSizeQueryLens
+import io.taggit.common.Lenses.tagSearchQueryLens
+import io.taggit.common.Lenses.tagStringLens
+import io.taggit.common.toUUID
 import org.http4k.client.ApacheClient
 import org.http4k.core.*
 import org.http4k.core.Method.GET
@@ -44,7 +39,6 @@ import org.http4k.security.OAuthProvider
 import org.http4k.security.gitHub
 import org.http4k.server.Netty
 import org.http4k.server.asServer
-import org.slf4j.LoggerFactory
 
 fun main() {
 

@@ -1,4 +1,4 @@
-package main.kotlin.io.taggit.common
+package io.taggit.common
 
 import java.util.*
 

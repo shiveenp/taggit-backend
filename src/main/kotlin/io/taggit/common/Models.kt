@@ -1,4 +1,4 @@
-package main.kotlin.io.taggit.common
+package io.taggit.common
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import org.http4k.core.Body

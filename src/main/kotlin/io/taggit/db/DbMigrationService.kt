@@ -1,10 +1,8 @@
 package io.taggit.db
 
-import main.kotlin.io.taggit.common.AppProperties
-import main.kotlin.io.taggit.common.GithubUser
+import io.taggit.common.AppProperties
 import mu.KotlinLogging
 import org.flywaydb.core.Flyway
-import org.slf4j.LoggerFactory
 import java.lang.Exception
 
 class DbMigrationService {
