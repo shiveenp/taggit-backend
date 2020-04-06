@@ -1,4 +1,4 @@
-package main.kotlin.io.taggit
+package main.kotlin.io.taggit.services
 
 import main.kotlin.io.taggit.common.GithubUser
 import main.kotlin.io.taggit.common.StargazingResponse
@@ -28,7 +28,8 @@ fun getUserStargazingData(token: String): List<StargazingResponse> {
 
     logger.info { "Getting first bit of user data" }
 
-    val stargazingData = requestGithubStargazingResponse(startPage, token)
+    val stargazingData =
+        requestGithubStargazingResponse(startPage, token)
     stargazingList.addAll(stargazingData.second)
 
     // check if more data is available; github usually sends it via a link header
@@ -43,7 +44,8 @@ fun getUserStargazingData(token: String): List<StargazingResponse> {
         logger.info { "Last page found, getting all user data till last page: $lastPage" }
         for (i in 2..lastPage) {
             logger.info { "Getting data for page: $i" }
-            val tempStargazingData = requestGithubStargazingResponse(i, token)
+            val tempStargazingData =
+                requestGithubStargazingResponse(i, token)
             stargazingList.addAll(tempStargazingData.second)
         }
     }

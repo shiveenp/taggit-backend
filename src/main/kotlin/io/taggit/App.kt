@@ -1,14 +1,15 @@
 package io.taggit
 
-import main.kotlin.io.taggit.DAO.getRepoSyncJobUsingId
-import main.kotlin.io.taggit.GitStarsService.addTag
-import main.kotlin.io.taggit.GitStarsService.deleteTag
-import main.kotlin.io.taggit.GitStarsService.getAllTags
-import main.kotlin.io.taggit.GitStarsService.getUser
-import main.kotlin.io.taggit.GitStarsService.getUserReposPaged
-import main.kotlin.io.taggit.GitStarsService.loginOrRegister
-import main.kotlin.io.taggit.GitStarsService.searchUserRepoByTags
-import main.kotlin.io.taggit.GitStarsService.syncUserRepos
+import io.taggit.db.DbMigrationService
+import main.kotlin.io.taggit.db.DAO.getRepoSyncJobUsingId
+import main.kotlin.io.taggit.services.GitStarsService.addTag
+import main.kotlin.io.taggit.services.GitStarsService.deleteTag
+import main.kotlin.io.taggit.services.GitStarsService.getAllTags
+import main.kotlin.io.taggit.services.GitStarsService.getUser
+import main.kotlin.io.taggit.services.GitStarsService.getUserReposPaged
+import main.kotlin.io.taggit.services.GitStarsService.loginOrRegister
+import main.kotlin.io.taggit.services.GitStarsService.searchUserRepoByTags
+import main.kotlin.io.taggit.services.GitStarsService.syncUserRepos
 import main.kotlin.io.taggit.common.AppProperties.dbPassword
 import main.kotlin.io.taggit.common.AppProperties.dbUrl
 import main.kotlin.io.taggit.common.AppProperties.dbUser
@@ -47,14 +48,10 @@ import org.slf4j.LoggerFactory
 
 fun main() {
 
-    val logger = LoggerFactory.getLogger(GithubUser::class.java)
-    // run migrations
-    logger.info ("Running database migrations...")
-    val flyway = Flyway.configure().dataSource(dbUrl(env), dbUser(env), dbPassword(env)).load()
-    flyway.migrate()
-    logger.info("Database migrations complete!")
-
     val port = System.getenv("PORT")?.toInt() ?: 9001
+
+    // run database migrations
+    DbMigrationService().runMigrations()
 
     val callbackUri = Uri.of( "${rootServiceUrl(env) ?: "http://localhost:9001"}/callback")
 

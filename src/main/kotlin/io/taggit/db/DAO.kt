@@ -1,4 +1,4 @@
-package main.kotlin.io.taggit
+package main.kotlin.io.taggit.db
 
 import main.kotlin.io.taggit.common.*
 import me.liuwj.ktorm.database.Database

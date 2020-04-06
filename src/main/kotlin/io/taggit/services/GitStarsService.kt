@@ -1,26 +1,26 @@
-package main.kotlin.io.taggit
+package main.kotlin.io.taggit.services
 
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import main.kotlin.io.taggit.DAO.completeRepoSyncJob
-import main.kotlin.io.taggit.DAO.createNewRepoSyncJob
-import main.kotlin.io.taggit.DAO.deleteTagFromRepo
-import main.kotlin.io.taggit.DAO.getAllDistinctTags
-import main.kotlin.io.taggit.DAO.getCurrentUserByGithubUserId
-import main.kotlin.io.taggit.DAO.getGitStarUser
-import main.kotlin.io.taggit.DAO.getMostRecentUnfinishedRepoSyncJob
-import main.kotlin.io.taggit.DAO.getRepoSyncJobUsingId
-import main.kotlin.io.taggit.DAO.getUserReposByTags
-import main.kotlin.io.taggit.DAO.getUserToken
-import main.kotlin.io.taggit.DAO.insertGitstarsUser
-import main.kotlin.io.taggit.DAO.insertTagInRepo
-import main.kotlin.io.taggit.DAO.updateGitstarsUser
+import main.kotlin.io.taggit.db.DAO
+import main.kotlin.io.taggit.db.DAO.completeRepoSyncJob
+import main.kotlin.io.taggit.db.DAO.createNewRepoSyncJob
+import main.kotlin.io.taggit.db.DAO.deleteTagFromRepo
+import main.kotlin.io.taggit.db.DAO.getAllDistinctTags
+import main.kotlin.io.taggit.db.DAO.getCurrentUserByGithubUserId
+import main.kotlin.io.taggit.db.DAO.getGitStarUser
+import main.kotlin.io.taggit.db.DAO.getMostRecentUnfinishedRepoSyncJob
+import main.kotlin.io.taggit.db.DAO.getRepoSyncJobUsingId
+import main.kotlin.io.taggit.db.DAO.getUserReposByTags
+import main.kotlin.io.taggit.db.DAO.getUserToken
+import main.kotlin.io.taggit.db.DAO.insertGitstarsUser
+import main.kotlin.io.taggit.db.DAO.insertTagInRepo
+import main.kotlin.io.taggit.db.DAO.updateGitstarsUser
 import main.kotlin.io.taggit.common.*
 import me.liuwj.ktorm.dsl.eq
 import me.liuwj.ktorm.dsl.select
 import me.liuwj.ktorm.dsl.where
 import java.util.*
-import kotlin.coroutines.Continuation
 
 object GitStarsService {
     fun loginOrRegister(token: String): UUID {
