@@ -1,4 +1,4 @@
-package main.kotlin.io.taggit
+package main.kotlin.io.taggit.db
 
 import com.fasterxml.jackson.databind.JavaType
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -49,7 +49,9 @@ fun <E : Any, C : Any> BaseTable<E>.jsonb(
     typeRef: TypeReference<C>,
     mapper: ObjectMapper = sharedObjectMapper
 ): BaseTable<E>.ColumnRegistration<C> {
-    return registerColumn(name, JsonbSqlType(mapper, mapper.constructType(typeRef.referencedType)))
+    return registerColumn(name,
+        JsonbSqlType(mapper, mapper.constructType(typeRef.referencedType))
+    )
 }
 
 /**
