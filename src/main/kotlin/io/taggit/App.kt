@@ -50,7 +50,7 @@ fun main() {
     val logger = LoggerFactory.getLogger(GithubUser::class.java)
     // run migrations
     logger.info ("Running database migrations...")
-    val flyway = Flyway.configure().dataSource(dbUrl(env), dbUser(env), dbPassword(env)).locations("classpath:resources/db/migration").load()
+    val flyway = Flyway.configure().dataSource(dbUrl(env), dbUser(env), dbPassword(env)).locations("classpath:/db/migration").load()
     flyway.migrate()
     logger.info("Database migrations complete!")
 
