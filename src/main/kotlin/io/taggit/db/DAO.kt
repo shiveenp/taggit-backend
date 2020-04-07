@@ -85,6 +85,9 @@ object DAO {
                 UsersTable.tokenRefreshedAt to LocalDateTime.now()
                 UsersTable.lastLoginAt to LocalDateTime.now()
                 UsersTable.updatedAt to LocalDateTime.now()
+                where {
+                    it.githubUserId eq githubUser.id
+                }
             }
         } else {
             UsersTable.update {
@@ -92,6 +95,9 @@ object DAO {
                 UsersTable.githubUserName to githubUser.login
                 UsersTable.email to githubUser.email
                 UsersTable.lastLoginAt to LocalDateTime.now()
+                where {
+                    it.githubUserId eq githubUser.id
+                }
             }
         }
     }
