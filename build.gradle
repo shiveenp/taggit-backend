@@ -6,6 +6,7 @@ buildscript {
         logback_version = "1.2.3"
         slf4j_version = "1.7.30"
         kotlin_logging_version = "1.7.7"
+        konfig_version = "1.6.10.0"
     }
     repositories {
         jcenter()
@@ -45,6 +46,7 @@ dependencies {
     implementation("org.http4k:http4k-cloudnative:$http4k_version")
 
     // utils
+    compile("com.natpryce:konfig:${konfig_version}")
     compile("me.liuwj.ktorm:ktorm-core:${ktorm_version}")
     compile("me.liuwj.ktorm:ktorm-support-postgresql:${ktorm_version}")
     compile("me.liuwj.ktorm:ktorm-jackson:${ktorm_version}")

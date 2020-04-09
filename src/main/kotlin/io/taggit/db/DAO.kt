@@ -1,6 +1,9 @@
 package io.taggit.db
 
 import io.taggit.common.*
+import io.taggit.common.AppProperties.dbPassword
+import io.taggit.common.AppProperties.dbUrl
+import io.taggit.common.AppProperties.dbUser
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.schema.*
@@ -13,10 +16,10 @@ import java.util.*
 object DAO {
 
     val db = Database.connect(
-        url = AppProperties.dbUrl(AppProperties.env),
+        url = config[dbUrl],
         driver = "org.postgresql.Driver",
-        user = AppProperties.dbUser(AppProperties.env),
-        password = AppProperties.dbPassword(AppProperties.env),
+        user = config[dbUser],
+        password = config[dbPassword],
         dialect = PostgreSqlDialect()
     )
 
