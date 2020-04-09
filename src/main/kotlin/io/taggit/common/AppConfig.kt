@@ -1,9 +1,5 @@
 package io.taggit.common
 
-import org.http4k.cloudnative.env.Environment
-import org.http4k.cloudnative.env.EnvironmentKey
-import org.http4k.lens.int
-import org.http4k.lens.string
 import com.natpryce.konfig.*
 
 
@@ -12,6 +8,7 @@ val config = EnvironmentVariables overriding
 
 object AppProperties {
     val port = Key("PORT", intType)
+    val corsOrigins = Key("CORS_ORIGINS", stringType)
     val githubClientId = Key("GITHUB_CLIENT_ID", stringType)
     val githubClientSecret = Key("GITHUB_CLIENT_SECRET", stringType)
     val dbUrl = Key("DATABASE_URL", stringType)

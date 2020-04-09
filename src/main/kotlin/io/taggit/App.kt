@@ -28,6 +28,7 @@ import org.http4k.core.Method.POST
 import org.http4k.core.Status.Companion.ACCEPTED
 import org.http4k.core.Status.Companion.OK
 import org.http4k.core.Status.Companion.PERMANENT_REDIRECT
+import org.http4k.core.Status.Companion.TEMPORARY_REDIRECT
 import org.http4k.filter.CorsPolicy
 import org.http4k.filter.ServerFilters
 import org.http4k.format.Jackson.asJsonObject
@@ -66,12 +67,12 @@ fun main() {
             "/login" bind GET to oauthProvider.authFilter.then {
                 val token = oauthPersistence.retrieveToken(it)?.value?.substringBefore("&scope")?.split("=")?.last()
                 val savedUserId = loginOrRegister(token!!)
-                Response(PERMANENT_REDIRECT).header(
+                Response(TEMPORARY_REDIRECT).header(
                     "location",
-                    "${config[uiURL]}}/user/$savedUserId"
+                    "${config[uiURL]}/user/$savedUserId"
                 )
             },
-            "/user/{userId}" bind GET to oauthProvider.authFilter { request ->
+            "/user/{userId}" bind GET to { request ->
                 Response(OK).body(
                     getUser(
                         request.path("userId")?.toUUID()
@@ -79,7 +80,7 @@ fun main() {
                     ).asJsonObject().asPrettyJsonString()
                 )
             },
-            "/user/{userId}/repos" bind GET to oauthProvider.authFilter { request ->
+            "/user/{userId}/repos" bind GET to { request ->
                 Response(OK).body(
                     getUserReposPaged(
                         request.path("userId")?.toUUID()
@@ -89,14 +90,14 @@ fun main() {
                     ).asJsonObject().asPrettyJsonString()
                 )
             },
-            "/user/{userId}/sync" bind POST to oauthProvider.authFilter { request ->
+            "/user/{userId}/sync" bind POST to { request ->
                 val syncJobId = syncUserRepos(
                     request.path("userId")?.toUUID()
                         ?: throw IllegalArgumentException("userId param cannot be left null")
                 )
                 Response(ACCEPTED).headers((listOf(Pair("Location", "/sync/$syncJobId"))))
             },
-            "/user/{userId}/tags" bind GET to oauthProvider.authFilter { request ->
+            "/user/{userId}/tags" bind GET to { request ->
                 Response(OK).body(
                     getAllTags(
                         request.path("userId")?.toUUID()
@@ -104,7 +105,7 @@ fun main() {
                     ).asJsonObject().asPrettyJsonString()
                 )
             },
-            "/user/{userId}/repo/search" bind GET to oauthProvider.authFilter { request ->
+            "/user/{userId}/repo/search" bind GET to { request ->
                 Response(OK).body(
                     searchUserRepoByTags(
                         request.path("userId")?.toUUID()
@@ -113,7 +114,7 @@ fun main() {
                     ).asJsonObject().asPrettyJsonString()
                 )
             },
-            "/sync/{jobId}" bind GET to oauthProvider.authFilter { request ->
+            "/sync/{jobId}" bind GET to { request ->
                 Response(OK).body(
                     getRepoSyncJobUsingId(
                         request.path("jobId")?.toUUID()
@@ -122,7 +123,7 @@ fun main() {
                 )
             },
             "repo" bind routes(
-                "{repoId}/tag" bind POST to oauthProvider.authFilter { request ->
+                "{repoId}/tag" bind POST to { request ->
                     Response(OK).body(
                         addTag(
                             request.path("repoId")?.toUUID()
@@ -131,7 +132,7 @@ fun main() {
                         ).asJsonObject().asPrettyJsonString()
                     )
                 },
-                "{repoId}/tag/{tag}" bind Method.DELETE to oauthProvider.authFilter { request ->
+                "{repoId}/tag/{tag}" bind Method.DELETE to { request ->
                     Response(OK).body(
                         deleteTag(
                             request.path("repoId")?.toUUID()
