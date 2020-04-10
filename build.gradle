@@ -1,6 +1,7 @@
 buildscript {
     ext {
-        kotlin_version = "1.3.60"
+        kotlin_version = "1.3.61"
+        kotlin_couroutines_version = "1.3.3"
         http4k_version = "3.206.0"
         ktorm_version = "2.6"
         logback_version = "1.2.3"
@@ -35,15 +36,15 @@ repositories {
 }
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: '1.3.3'
+    compile("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
+    compile("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_couroutines_version")
 
-    implementation("org.http4k:http4k-core:$http4k_version")
-    implementation("org.http4k:http4k-server-netty:$http4k_version")
-    implementation("org.http4k:http4k-format-jackson:$http4k_version")
-    implementation("org.http4k:http4k-client-apache:$http4k_version")
-    implementation("org.http4k:http4k-security-oauth:$http4k_version")
-    implementation("org.http4k:http4k-cloudnative:$http4k_version")
+    compile("org.http4k:http4k-core:$http4k_version")
+    compile("org.http4k:http4k-server-jetty:$http4k_version")
+    compile("org.http4k:http4k-format-jackson:$http4k_version")
+    compile("org.http4k:http4k-client-apache:$http4k_version")
+    compile("org.http4k:http4k-security-oauth:$http4k_version")
+    compile("org.http4k:http4k-client-websocket:$http4k_version")
 
     // utils
     compile("com.natpryce:konfig:${konfig_version}")

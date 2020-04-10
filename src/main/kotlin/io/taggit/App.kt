@@ -27,20 +27,24 @@ import org.http4k.core.Method.GET
 import org.http4k.core.Method.POST
 import org.http4k.core.Status.Companion.ACCEPTED
 import org.http4k.core.Status.Companion.OK
-import org.http4k.core.Status.Companion.PERMANENT_REDIRECT
 import org.http4k.core.Status.Companion.TEMPORARY_REDIRECT
 import org.http4k.filter.CorsPolicy
 import org.http4k.filter.ServerFilters
 import org.http4k.format.Jackson.asJsonObject
 import org.http4k.format.Jackson.asPrettyJsonString
+import org.http4k.lens.Path
 import org.http4k.routing.bind
 import org.http4k.routing.path
 import org.http4k.routing.routes
+import org.http4k.routing.websockets
 import org.http4k.security.InsecureCookieBasedOAuthPersistence
 import org.http4k.security.OAuthProvider
 import org.http4k.security.gitHub
-import org.http4k.server.Netty
+import org.http4k.server.Jetty
 import org.http4k.server.asServer
+import org.http4k.websocket.PolyHandler
+import org.http4k.websocket.Websocket
+import org.http4k.websocket.WsMessage
 
 fun main() {
 
@@ -48,6 +52,19 @@ fun main() {
     DbMigrationService().runMigrations()
 
     val callbackUri = Uri.of("${config[rootServiceUrl]}/callback")
+
+    val namePath = Path.of("name")
+
+    val ws = websockets(
+        "/{name}" bind { ws: Websocket ->
+            val name = namePath(ws.upgradeRequest)
+            ws.send(WsMessage("hello $name"))
+            ws.onMessage {
+                ws.send(WsMessage("$name is responding"))
+            }
+            ws.onClose { println("$name is closing") }
+        }
+    )
 
     val oauthPersistence = InsecureCookieBasedOAuthPersistence("taggit-dev")
 
@@ -145,10 +162,12 @@ fun main() {
             )
         )
 
-    ServerFilters
+    val http = ServerFilters
         .Cors(CorsPolicy.UnsafeGlobalPermissive)
         .then(app)
-        .asServer(Netty(config[port]))
+
+    PolyHandler(http, ws)
+        .asServer(Jetty(config[port]))
         .start()
         .block()
 }

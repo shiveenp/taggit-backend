@@ -80,7 +80,9 @@ data class RepoSyncJob(
     val id: UUID,
     val userId: UUID,
     val completed: Boolean,
-    val createdAt: LocalDateTime
+    val createdAt: LocalDateTime,
+    val error: String?,
+    val progressPercent: Float
 )
 
 data class PagedResponse<T>(

@@ -54,6 +54,8 @@ object DAO {
         val userId by uuid("user_id")
         val completed by boolean("completed")
         val createdAt by datetime("created_at")
+        val error by text("error")
+        val progressPercent by float("progress_percent")
     }
 
     fun getUserToken(userId: UUID): String {
@@ -323,7 +325,9 @@ object DAO {
                     row[RepoSyncJobsTable.id]!!,
                     row[RepoSyncJobsTable.userId]!!,
                     row[RepoSyncJobsTable.completed]!!,
-                    row[RepoSyncJobsTable.createdAt]!!
+                    row[RepoSyncJobsTable.createdAt]!!,
+                    row[RepoSyncJobsTable.error],
+                    row[RepoSyncJobsTable.progressPercent]!!
                 )
             }[0]
     }
@@ -340,7 +344,9 @@ object DAO {
                     row[RepoSyncJobsTable.id]!!,
                     row[RepoSyncJobsTable.userId]!!,
                     row[RepoSyncJobsTable.completed]!!,
-                    row[RepoSyncJobsTable.createdAt]!!
+                    row[RepoSyncJobsTable.createdAt]!!,
+                    row[RepoSyncJobsTable.error],
+                    row[RepoSyncJobsTable.progressPercent]!!
                 )
             }[0]
     }
