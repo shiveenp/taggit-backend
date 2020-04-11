@@ -13,14 +13,14 @@ import io.taggit.common.config
 import io.taggit.common.toUUID
 import io.taggit.db.DAO.getRepoSyncJobUsingId
 import io.taggit.db.DbMigrationService
-import io.taggit.services.GitStarsService.addTag
-import io.taggit.services.GitStarsService.deleteTag
-import io.taggit.services.GitStarsService.getAllTags
-import io.taggit.services.GitStarsService.getUser
-import io.taggit.services.GitStarsService.getUserReposPaged
-import io.taggit.services.GitStarsService.loginOrRegister
-import io.taggit.services.GitStarsService.searchUserRepoByTags
-import io.taggit.services.GitStarsService.syncUserRepos
+import io.taggit.services.TaggitService.addTag
+import io.taggit.services.TaggitService.deleteTag
+import io.taggit.services.TaggitService.getAllTags
+import io.taggit.services.TaggitService.getUser
+import io.taggit.services.TaggitService.getUserReposPaged
+import io.taggit.services.TaggitService.loginOrRegister
+import io.taggit.services.TaggitService.searchUserRepoByTags
+import io.taggit.services.TaggitService.syncUserRepos
 import org.http4k.client.ApacheClient
 import org.http4k.core.*
 import org.http4k.core.Method.GET
@@ -47,22 +47,25 @@ import org.http4k.websocket.Websocket
 import org.http4k.websocket.WsMessage
 
 fun main() {
-
     // run database migrations
     DbMigrationService().runMigrations()
 
     val callbackUri = Uri.of("${config[rootServiceUrl]}/callback")
 
-    val namePath = Path.of("name")
+    val syncJobPath = Path.of("syncJobId")
 
     val ws = websockets(
-        "/{name}" bind { ws: Websocket ->
-            val name = namePath(ws.upgradeRequest)
-            ws.send(WsMessage("hello $name"))
-            ws.onMessage {
-                ws.send(WsMessage("$name is responding"))
+        "/{syncJobId}" bind { ws: Websocket ->
+            val syncJobId = syncJobPath(ws.upgradeRequest)
+            var keepChecking = true
+            while (keepChecking) {
+                val syncJob = getRepoSyncJobUsingId(syncJobId.toUUID())
+                ws.send(WsMessage(syncJob.asJsonObject().asPrettyJsonString()))
+                if (syncJob.completed) {
+                    keepChecking = false
+                }
             }
-            ws.onClose { println("$name is closing") }
+            ws.close()
         }
     )
 
@@ -112,7 +115,7 @@ fun main() {
                     request.path("userId")?.toUUID()
                         ?: throw IllegalArgumentException("userId param cannot be left null")
                 )
-                Response(ACCEPTED).headers((listOf(Pair("Location", "/sync/$syncJobId"))))
+                Response(ACCEPTED).headers((listOf(Pair("Location", "/$syncJobId")))).body(syncJobId.toString())
             },
             "/user/{userId}/tags" bind GET to { request ->
                 Response(OK).body(

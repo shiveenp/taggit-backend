@@ -56,6 +56,7 @@ object DAO {
         val createdAt by datetime("created_at")
         val error by text("error")
         val progressPercent by float("progress_percent")
+        val status by text("status")
     }
 
     fun getUserToken(userId: UUID): String {
@@ -349,6 +350,21 @@ object DAO {
                     row[RepoSyncJobsTable.progressPercent]!!
                 )
             }[0]
+    }
+
+    fun updateRepoSyncJobProgressAndStatus(status: String, progressPercent: Float, jobId: UUID) {
+        RepoSyncJobsTable.update {
+            RepoSyncJobsTable.status to status
+            RepoSyncJobsTable.progressPercent to progressPercent
+            where { RepoSyncJobsTable.id eq jobId }
+        }
+    }
+
+    fun updateRepoSyncJobError(errorMessage: String, jobId: UUID) {
+        RepoSyncJobsTable.update {
+            RepoSyncJobsTable.error to errorMessage
+            where { RepoSyncJobsTable.id eq jobId }
+        }
     }
 
     fun completeRepoSyncJob(jobId: UUID) {
