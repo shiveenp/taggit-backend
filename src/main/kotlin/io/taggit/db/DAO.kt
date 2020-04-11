@@ -328,7 +328,8 @@ object DAO {
                     row[RepoSyncJobsTable.completed]!!,
                     row[RepoSyncJobsTable.createdAt]!!,
                     row[RepoSyncJobsTable.error],
-                    row[RepoSyncJobsTable.progressPercent]!!
+                    row[RepoSyncJobsTable.progressPercent]!!,
+                    row[RepoSyncJobsTable.status]
                 )
             }[0]
     }

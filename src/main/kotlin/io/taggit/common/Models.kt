@@ -82,7 +82,8 @@ data class RepoSyncJob(
     val completed: Boolean,
     val createdAt: LocalDateTime,
     val error: String?,
-    val progressPercent: Float
+    val progressPercent: Float,
+    val status: String? = ""
 )
 
 data class PagedResponse<T>(
