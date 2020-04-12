@@ -13,41 +13,61 @@ import io.taggit.common.config
 import io.taggit.common.toUUID
 import io.taggit.db.DAO.getRepoSyncJobUsingId
 import io.taggit.db.DbMigrationService
-import io.taggit.services.GitStarsService.addTag
-import io.taggit.services.GitStarsService.deleteTag
-import io.taggit.services.GitStarsService.getAllTags
-import io.taggit.services.GitStarsService.getUser
-import io.taggit.services.GitStarsService.getUserReposPaged
-import io.taggit.services.GitStarsService.loginOrRegister
-import io.taggit.services.GitStarsService.searchUserRepoByTags
-import io.taggit.services.GitStarsService.syncUserRepos
+import io.taggit.services.TaggitService.addTag
+import io.taggit.services.TaggitService.deleteTag
+import io.taggit.services.TaggitService.getAllTags
+import io.taggit.services.TaggitService.getUser
+import io.taggit.services.TaggitService.getUserReposPaged
+import io.taggit.services.TaggitService.loginOrRegister
+import io.taggit.services.TaggitService.searchUserRepoByTags
+import io.taggit.services.TaggitService.syncUserRepos
 import org.http4k.client.ApacheClient
 import org.http4k.core.*
 import org.http4k.core.Method.GET
 import org.http4k.core.Method.POST
 import org.http4k.core.Status.Companion.ACCEPTED
 import org.http4k.core.Status.Companion.OK
-import org.http4k.core.Status.Companion.PERMANENT_REDIRECT
 import org.http4k.core.Status.Companion.TEMPORARY_REDIRECT
 import org.http4k.filter.CorsPolicy
 import org.http4k.filter.ServerFilters
 import org.http4k.format.Jackson.asJsonObject
 import org.http4k.format.Jackson.asPrettyJsonString
+import org.http4k.lens.Path
 import org.http4k.routing.bind
 import org.http4k.routing.path
 import org.http4k.routing.routes
+import org.http4k.routing.websockets
 import org.http4k.security.InsecureCookieBasedOAuthPersistence
 import org.http4k.security.OAuthProvider
 import org.http4k.security.gitHub
-import org.http4k.server.Netty
+import org.http4k.server.Jetty
 import org.http4k.server.asServer
+import org.http4k.websocket.PolyHandler
+import org.http4k.websocket.Websocket
+import org.http4k.websocket.WsMessage
 
 fun main() {
-
     // run database migrations
     DbMigrationService().runMigrations()
 
     val callbackUri = Uri.of("${config[rootServiceUrl]}/callback")
+
+    val syncJobPath = Path.of("syncJobId")
+
+    val ws = websockets(
+        "/{syncJobId}" bind { ws: Websocket ->
+            val syncJobId = syncJobPath(ws.upgradeRequest)
+            var keepChecking = true
+            while (keepChecking) {
+                val syncJob = getRepoSyncJobUsingId(syncJobId.toUUID())
+                ws.send(WsMessage(syncJob.asJsonObject().asPrettyJsonString()))
+                if (syncJob.completed) {
+                    keepChecking = false
+                }
+            }
+            ws.close()
+        }
+    )
 
     val oauthPersistence = InsecureCookieBasedOAuthPersistence("taggit-dev")
 
@@ -95,7 +115,7 @@ fun main() {
                     request.path("userId")?.toUUID()
                         ?: throw IllegalArgumentException("userId param cannot be left null")
                 )
-                Response(ACCEPTED).headers((listOf(Pair("Location", "/sync/$syncJobId"))))
+                Response(ACCEPTED).headers((listOf(Pair("Location", "/$syncJobId")))).body(syncJobId.toString())
             },
             "/user/{userId}/tags" bind GET to { request ->
                 Response(OK).body(
@@ -145,10 +165,12 @@ fun main() {
             )
         )
 
-    ServerFilters
+    val http = ServerFilters
         .Cors(CorsPolicy.UnsafeGlobalPermissive)
         .then(app)
-        .asServer(Netty(config[port]))
+
+    PolyHandler(http, ws)
+        .asServer(Jetty(config[port]))
         .start()
         .block()
 }
