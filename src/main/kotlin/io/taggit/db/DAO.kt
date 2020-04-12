@@ -1,6 +1,9 @@
 package io.taggit.db
 
 import io.taggit.common.*
+import io.taggit.common.AppProperties.dbPassword
+import io.taggit.common.AppProperties.dbUrl
+import io.taggit.common.AppProperties.dbUser
 import me.liuwj.ktorm.database.Database
 import me.liuwj.ktorm.dsl.*
 import me.liuwj.ktorm.schema.*
@@ -13,10 +16,10 @@ import java.util.*
 object DAO {
 
     val db = Database.connect(
-        url = AppProperties.dbUrl(AppProperties.env),
+        url = config[dbUrl],
         driver = "org.postgresql.Driver",
-        user = AppProperties.dbUser(AppProperties.env),
-        password = AppProperties.dbPassword(AppProperties.env),
+        user = config[dbUser],
+        password = config[dbPassword],
         dialect = PostgreSqlDialect()
     )
 
@@ -51,6 +54,9 @@ object DAO {
         val userId by uuid("user_id")
         val completed by boolean("completed")
         val createdAt by datetime("created_at")
+        val error by text("error")
+        val progressPercent by float("progress_percent")
+        val status by text("status")
     }
 
     fun getUserToken(userId: UUID): String {
@@ -320,7 +326,10 @@ object DAO {
                     row[RepoSyncJobsTable.id]!!,
                     row[RepoSyncJobsTable.userId]!!,
                     row[RepoSyncJobsTable.completed]!!,
-                    row[RepoSyncJobsTable.createdAt]!!
+                    row[RepoSyncJobsTable.createdAt]!!,
+                    row[RepoSyncJobsTable.error],
+                    row[RepoSyncJobsTable.progressPercent]!!,
+                    row[RepoSyncJobsTable.status]
                 )
             }[0]
     }
@@ -337,9 +346,26 @@ object DAO {
                     row[RepoSyncJobsTable.id]!!,
                     row[RepoSyncJobsTable.userId]!!,
                     row[RepoSyncJobsTable.completed]!!,
-                    row[RepoSyncJobsTable.createdAt]!!
+                    row[RepoSyncJobsTable.createdAt]!!,
+                    row[RepoSyncJobsTable.error],
+                    row[RepoSyncJobsTable.progressPercent]!!
                 )
             }[0]
+    }
+
+    fun updateRepoSyncJobProgressAndStatus(status: String, progressPercent: Float, jobId: UUID) {
+        RepoSyncJobsTable.update {
+            RepoSyncJobsTable.status to status
+            RepoSyncJobsTable.progressPercent to progressPercent
+            where { RepoSyncJobsTable.id eq jobId }
+        }
+    }
+
+    fun updateRepoSyncJobError(errorMessage: String, jobId: UUID) {
+        RepoSyncJobsTable.update {
+            RepoSyncJobsTable.error to errorMessage
+            where { RepoSyncJobsTable.id eq jobId }
+        }
     }
 
     fun completeRepoSyncJob(jobId: UUID) {

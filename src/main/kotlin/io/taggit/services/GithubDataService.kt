@@ -26,7 +26,7 @@ fun getUserStargazingData(token: String): List<StargazingResponse> {
     var lastPage: Int? = null
     val stargazingList = mutableListOf<StargazingResponse>()
 
-    logger.info { "Getting first bit of user data" }
+    logger.debug { "Getting first bit of user data" }
 
     val stargazingData =
         requestGithubStargazingResponse(startPage, token)
@@ -34,16 +34,16 @@ fun getUserStargazingData(token: String): List<StargazingResponse> {
 
     // check if more data is available; github usually sends it via a link header
     val linksHeader = stargazingData.first.header("Link")
-    logger.info { "Link data is: $linksHeader" }
+    logger.debug { "Link data is: $linksHeader" }
     if (linksHeader != null) {
         val lastPageLink = linksHeader.split(",").last()
         lastPage = githubLinkMatchRegex.find(lastPageLink)?.groupValues?.last()?.substringAfter("=")?.toInt()
     }
     // if yes, retrieve it iteratively
     if (lastPage != null) {
-        logger.info { "Last page found, getting all user data till last page: $lastPage" }
+        logger.debug { "Last page found, getting all user data till last page: $lastPage" }
         for (i in 2..lastPage) {
-            logger.info { "Getting data for page: $i" }
+            logger.debug { "Getting data for page: $i" }
             val tempStargazingData =
                 requestGithubStargazingResponse(i, token)
             stargazingList.addAll(tempStargazingData.second)

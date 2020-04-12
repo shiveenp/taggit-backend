@@ -15,14 +15,18 @@ import io.taggit.db.DAO.getUserToken
 import io.taggit.db.DAO.insertGitstarsUser
 import io.taggit.db.DAO.insertTagInRepo
 import io.taggit.db.DAO.updateGitstarsUser
+import io.taggit.db.DAO.updateRepoSyncJobProgressAndStatus
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import me.liuwj.ktorm.dsl.eq
 import me.liuwj.ktorm.dsl.select
 import me.liuwj.ktorm.dsl.where
+import mu.KotlinLogging
 import java.util.*
 
-object GitStarsService {
+object TaggitService {
+    private val logger = KotlinLogging.logger { }
+
     fun loginOrRegister(token: String): UUID {
         val githubUser = getUserData(token)
         val existingUser = getCurrentUserByGithubUserId(githubUser.id)
@@ -71,7 +75,8 @@ object GitStarsService {
         val syncJob = getMostRecentUnfinishedRepoSyncJob(userId)
         GlobalScope.launch {
             val token = getUserToken(userId)
-            updateUserRepos(userId, token)
+            updateUserRepos(userId, token, syncJob.id)
+            updateRepoSyncJobProgressAndStatus("Update completed!", 1.0F, syncJob.id)
             completeRepoSyncJob(syncJob.id)
         }
         return syncJob.id
@@ -81,14 +86,28 @@ object GitStarsService {
         return getRepoSyncJobUsingId(jobId)
     }
 
-    fun updateUserRepos(userId: UUID, token: String) {
-        val currentUserRepoIds = DAO.getUserRepos(userId)
-            .map { it.repoId }
-        getUserStargazingData(token).forEach {
-            if (currentUserRepoIds.notContains(it.id)) {
-                // only add the repo for the user if not previously added
-                DAO.insertRepo(it, userId)
+    fun updateUserRepos(userId: UUID, token: String, syncJobId: UUID) {
+        try {
+            logger.info { "Getting current syncd user repos for userId: $userId" }
+            updateRepoSyncJobProgressAndStatus("Checking for pre syncd repos", 0.3F, syncJobId)
+            val currentUserRepoIds = DAO.getUserRepos(userId)
+                .map { it.repoId }
+            updateRepoSyncJobProgressAndStatus("Pulling current stargazing data from Github", 0.6F, syncJobId)
+            logger.info { "Pulling user stargazing data from github" }
+            val currentStargazingData = getUserStargazingData(token)
+            updateRepoSyncJobProgressAndStatus("Updating syncd repos with new stargazing data", 0.9F, syncJobId)
+            logger.info { "Checking for repos that haven't been syncd before" }
+            currentStargazingData.forEach {
+                if (currentUserRepoIds.notContains(it.id)) {
+                    // only add the repo for the user if not previously added
+                    logger.debug { "Previously unsyncd repo ${it.name} found, syncing..." }
+                    DAO.insertRepo(it, userId)
+                    logger.debug { "done!" }
+                }
             }
+        } catch (e: Exception) {
+            logger.error(e) { "Unable to sync user stargazing data" }
+
         }
     }
 
