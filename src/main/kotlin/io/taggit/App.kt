@@ -86,6 +86,7 @@ fun main() {
             callbackUri.path bind GET to oauthProvider.callback,
             "/login" bind GET to oauthProvider.authFilter.then {
                 val token = oauthPersistence.retrieveToken(it)?.value?.substringBefore("&scope")?.split("=")?.last()
+                println("token is $token")
                 val savedUserId = loginOrRegister(token!!)
                 Response(TEMPORARY_REDIRECT).header(
                     "location",

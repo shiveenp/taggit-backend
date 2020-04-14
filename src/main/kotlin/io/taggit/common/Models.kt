@@ -42,7 +42,7 @@ data class StarredRepoOwner(
 data class GithubUser(
     val id: Long,
     val login: String,
-    val name: String,
+    val name: String?,
     val email: String?
 )
 

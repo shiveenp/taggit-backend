@@ -66,9 +66,10 @@ object DAO {
     }
 
     fun insertGitstarsUser(githubUser: GithubUser, token: String): Int {
+        val userName = githubUser.name ?: githubUser.login
         return UsersTable.insert {
             UsersTable.id to UUID.randomUUID()
-            UsersTable.userName to githubUser.name
+            UsersTable.userName to userName
             UsersTable.email to githubUser.email
             UsersTable.password to "hello_it_me"
             UsersTable.githubUserName to githubUser.login
