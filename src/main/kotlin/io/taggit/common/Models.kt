@@ -42,6 +42,8 @@ data class StarredRepoOwner(
 data class GithubUser(
     val id: Long,
     val login: String,
+    @JsonProperty("avatar_url")
+    val avatarUrl: String,
     val name: String?,
     val email: String?
 )
@@ -50,6 +52,7 @@ data class GitstarUser(
     val id: UUID,
     val userName: String,
     val email: String?,
+    val avatarUrl: String?,
     val githubUserName: String,
     val githubUserId: Long,
     val accessToken: String,

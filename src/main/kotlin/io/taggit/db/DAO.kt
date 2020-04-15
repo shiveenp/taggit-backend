@@ -30,6 +30,7 @@ object DAO {
         val password by text("password")
         val githubUserName by text("github_user_name")
         val githubUserId by long("github_user_id")
+        val avatarUrl by text("avatar_url")
         val accessToken by text("access_token")
         val tokenRefreshedAt by datetime("token_refreshed_at")
         val lastLoginAt by datetime("last_login_at")
@@ -74,6 +75,7 @@ object DAO {
             UsersTable.password to "hello_it_me"
             UsersTable.githubUserName to githubUser.login
             UsersTable.githubUserId to githubUser.id
+            UsersTable.avatarUrl to githubUser.avatarUrl
             UsersTable.accessToken to token
             UsersTable.tokenRefreshedAt to LocalDateTime.now()
             UsersTable.lastLoginAt to LocalDateTime.now()
@@ -83,11 +85,13 @@ object DAO {
     }
 
     fun updateGitstarsUser(githubUser: GithubUser, oldAccessToken: String, newAccessToken: String): Int {
+        val userName = githubUser.name ?: githubUser.login
         return if (oldAccessToken != newAccessToken) {
             UsersTable.update {
-                UsersTable.userName to githubUser.name
+                UsersTable.userName to userName
                 UsersTable.githubUserName to githubUser.login
                 UsersTable.email to githubUser.email
+                UsersTable.avatarUrl to githubUser.avatarUrl
                 UsersTable.accessToken to newAccessToken
                 UsersTable.tokenRefreshedAt to LocalDateTime.now()
                 UsersTable.lastLoginAt to LocalDateTime.now()
@@ -98,9 +102,10 @@ object DAO {
             }
         } else {
             UsersTable.update {
-                UsersTable.userName to githubUser.name
+                UsersTable.userName to userName
                 UsersTable.githubUserName to githubUser.login
                 UsersTable.email to githubUser.email
+                UsersTable.avatarUrl to githubUser.avatarUrl
                 UsersTable.lastLoginAt to LocalDateTime.now()
                 where {
                     it.githubUserId eq githubUser.id
@@ -117,6 +122,7 @@ object DAO {
                     id = row[UsersTable.id]!!,
                     userName = row[UsersTable.userName]!!,
                     email = row[UsersTable.email],
+                    avatarUrl = row[UsersTable.avatarUrl],
                     githubUserName = row[UsersTable.githubUserName]!!,
                     githubUserId = row[UsersTable.githubUserId]!!,
                     accessToken = row[UsersTable.accessToken]!!,
@@ -133,7 +139,8 @@ object DAO {
                 GitstarUser(
                     id = row[UsersTable.id]!!,
                     userName = row[UsersTable.userName]!!,
-                    email = row[UsersTable.email]!!,
+                    email = row[UsersTable.email],
+                    avatarUrl = row[UsersTable.avatarUrl],
                     githubUserName = row[UsersTable.githubUserName]!!,
                     githubUserId = row[UsersTable.githubUserId]!!,
                     accessToken = row[UsersTable.accessToken]!!,
