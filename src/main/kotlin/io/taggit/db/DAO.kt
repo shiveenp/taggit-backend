@@ -149,6 +149,14 @@ object DAO {
                 )
             }
     }
+    fun updateGitStarUser(userId: UUID, update: GitStarUserUpdate): List<GitstarUser> {
+        UsersTable.update {
+            UsersTable.userName to update.userName
+            UsersTable.email to update.email
+            where { UsersTable.id eq userId}
+        }
+        return getGitStarUser(userId)
+    }
 
     fun insertRepo(stargazingResponse: StargazingResponse, userId: UUID) {
         RepoTable.insert {

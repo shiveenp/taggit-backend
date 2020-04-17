@@ -18,6 +18,7 @@ object Constants {
 
 object Lenses {
     val tagStringLens = Body.auto<TagInput>().toLens()
+    val userUpdateLens = Body.auto<GitStarUserUpdate>().toLens()
     val tagSearchQueryLens = Query.string().multi.required("tag")
     val pageNumberQueryLens = Query.int().optional("pageNm")
     val pageSizeQueryLens = Query.int().optional("pageSize")
@@ -58,6 +59,11 @@ data class GitstarUser(
     val accessToken: String,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime
+)
+
+data class GitStarUserUpdate(
+    val userName: String?,
+    val email: String?
 )
 
 data class TagInput(

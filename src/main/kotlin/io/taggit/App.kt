@@ -9,6 +9,7 @@ import io.taggit.common.Lenses.pageNumberQueryLens
 import io.taggit.common.Lenses.pageSizeQueryLens
 import io.taggit.common.Lenses.tagSearchQueryLens
 import io.taggit.common.Lenses.tagStringLens
+import io.taggit.common.Lenses.userUpdateLens
 import io.taggit.common.config
 import io.taggit.common.toUUID
 import io.taggit.db.DAO.getRepoSyncJobUsingId
@@ -21,10 +22,10 @@ import io.taggit.services.TaggitService.getUserReposPaged
 import io.taggit.services.TaggitService.loginOrRegister
 import io.taggit.services.TaggitService.searchUserRepoByTags
 import io.taggit.services.TaggitService.syncUserRepos
+import io.taggit.services.TaggitService.updateUser
 import org.http4k.client.ApacheClient
 import org.http4k.core.*
-import org.http4k.core.Method.GET
-import org.http4k.core.Method.POST
+import org.http4k.core.Method.*
 import org.http4k.core.Status.Companion.ACCEPTED
 import org.http4k.core.Status.Companion.OK
 import org.http4k.core.Status.Companion.TEMPORARY_REDIRECT
@@ -98,6 +99,15 @@ fun main() {
                     getUser(
                         request.path("userId")?.toUUID()
                             ?: throw IllegalArgumentException("userId param cannot be left empty")
+                    ).asJsonObject().asPrettyJsonString()
+                )
+            },
+            "/user/{userId}" bind PUT to { request ->
+                Response(OK).body(
+                    updateUser(
+                        request.path("userId")?.toUUID()
+                            ?: throw IllegalArgumentException("userId param cannot be left empty")
+                        , userUpdateLens(request)
                     ).asJsonObject().asPrettyJsonString()
                 )
             },

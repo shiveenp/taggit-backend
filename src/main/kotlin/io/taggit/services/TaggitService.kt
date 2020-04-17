@@ -14,6 +14,7 @@ import io.taggit.db.DAO.getUserReposByTags
 import io.taggit.db.DAO.getUserToken
 import io.taggit.db.DAO.insertGitstarsUser
 import io.taggit.db.DAO.insertTagInRepo
+import io.taggit.db.DAO.updateGitStarUser
 import io.taggit.db.DAO.updateGitstarsUser
 import io.taggit.db.DAO.updateRepoSyncJobProgressAndStatus
 import kotlinx.coroutines.GlobalScope
@@ -44,6 +45,10 @@ object TaggitService {
 
     fun getUser(userId: UUID): GitstarUser {
         return getGitStarUser(userId)[0]
+    }
+
+    fun updateUser(userId: UUID, update: GitStarUserUpdate): GitstarUser {
+        return updateGitStarUser(userId, update)[0]
     }
 
     fun getUserReposPaged(userId: UUID, pageNm: Int?, pageSize: Int?): PagedResponse<GitStarsRepo> {
