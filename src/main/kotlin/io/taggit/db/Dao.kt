@@ -13,8 +13,7 @@ import org.http4k.format.Jackson.asJsonObject
 import java.time.LocalDateTime
 import java.util.*
 
-object DAO {
-
+object Dao {
     val db = Database.connect(
         url = config[dbUrl],
         driver = "org.postgresql.Driver",
@@ -36,34 +35,13 @@ object DAO {
         val lastLoginAt by datetime("last_login_at")
         val createdAt by datetime("created_at")
         val updatedAt by datetime("updated_at")
+        val deleted_at by datetime("deleted_at")
     }
 
-    object RepoTable : Table<Nothing>("repo") {
-        val id by uuid("id").primaryKey()
-        val userId by uuid("user_id")
-        val repoId by long("repo_id")
-        val repoName by text("repo_name")
-        val githubLink by text("github_link")
-        val githubDescription by text("github_description")
-        val starCount by int("star_count")
-        val ownerAvatarUrl by text("owner_avatar_url")
-        val metadata by jsonb("metadata", typeRef<Metadata>())
-    }
-
-    object RepoSyncJobsTable : Table<Nothing>("repo_sync_jobs") {
-        val id by uuid("id").primaryKey()
-        val userId by uuid("user_id")
-        val completed by boolean("completed")
-        val createdAt by datetime("created_at")
-        val error by text("error")
-        val progressPercent by float("progress_percent")
-        val status by text("status")
-    }
-
-    fun getUserToken(userId: UUID): String {
+    fun getUserToken(userId: UUID): String? {
         return UsersTable.select(UsersTable.accessToken)
-            .where { UsersTable.id eq userId }
-            .map { row -> row[UsersTable.accessToken]!! }[0]
+            .where { (UsersTable.id eq userId) and (UsersTable.deleted_at.isNull()) }
+            .map { row -> row[UsersTable.accessToken] }[0]
     }
 
     fun insertGitstarsUser(githubUser: GithubUser, token: String): Int {
@@ -116,7 +94,7 @@ object DAO {
 
     fun getGitStarUser(userId: UUID): List<GitstarUser> {
         return UsersTable.select()
-            .where { UsersTable.id eq userId }
+            .where { (UsersTable.id eq userId) and (UsersTable.deleted_at.isNull()) }
             .map { row ->
                 GitstarUser(
                     id = row[UsersTable.id]!!,
@@ -134,7 +112,7 @@ object DAO {
 
     fun getCurrentUserByGithubUserId(githubUserId: Long): List<GitstarUser> {
         return UsersTable.select()
-            .where { UsersTable.githubUserId eq githubUserId }
+            .where { (UsersTable.githubUserId eq githubUserId) and (UsersTable.deleted_at.isNull()) }
             .map { row ->
                 GitstarUser(
                     id = row[UsersTable.id]!!,
@@ -149,26 +127,40 @@ object DAO {
                 )
             }
     }
+
     fun updateGitStarUser(userId: UUID, update: GitStarUserUpdate): List<GitstarUser> {
         UsersTable.update {
             UsersTable.userName to update.userName
             UsersTable.email to update.email
-            where { UsersTable.id eq userId}
+            where { UsersTable.id eq userId }
         }
         return getGitStarUser(userId)
     }
 
-    fun insertRepo(stargazingResponse: StargazingResponse, userId: UUID) {
-        RepoTable.insert {
-            RepoTable.id to UUID.randomUUID()
-            RepoTable.userId to userId
-            RepoTable.repoId to stargazingResponse.id
-            RepoTable.repoName to stargazingResponse.name
-            RepoTable.githubLink to stargazingResponse.url
-            RepoTable.githubDescription to stargazingResponse.description
-            RepoTable.starCount to stargazingResponse.stargazersCount
-            RepoTable.ownerAvatarUrl to stargazingResponse.owner.avatarUrl
+    fun deleteGitStarUser(userId: UUID) {
+        val nativeSql = """
+            update users
+            set deleted_at = now()
+            where id = '$userId'
+        """.trimIndent()
+
+        db.useConnection {conn ->
+            conn.prepareStatement(nativeSql).use {ps ->
+                ps.executeUpdate()
+            }
         }
+    }
+
+    object RepoTable : Table<Nothing>("repo") {
+        val id by uuid("id").primaryKey()
+        val userId by uuid("user_id")
+        val repoId by long("repo_id")
+        val repoName by text("repo_name")
+        val githubLink by text("github_link")
+        val githubDescription by text("github_description")
+        val starCount by int("star_count")
+        val ownerAvatarUrl by text("owner_avatar_url")
+        val metadata by jsonb("metadata", typeRef<Metadata>())
     }
 
     fun getUserReposPaged(userId: UUID, offset: Int, limit: Int): PagedResponse<GitStarsRepo> {
@@ -332,6 +324,29 @@ object DAO {
             .flatMap {
                 it.tags
             }.toSortedSet().toList()
+    }
+
+    fun insertRepo(stargazingResponse: StargazingResponse, userId: UUID) {
+        RepoTable.insert {
+            RepoTable.id to UUID.randomUUID()
+            RepoTable.userId to userId
+            RepoTable.repoId to stargazingResponse.id
+            RepoTable.repoName to stargazingResponse.name
+            RepoTable.githubLink to stargazingResponse.url
+            RepoTable.githubDescription to stargazingResponse.description
+            RepoTable.starCount to stargazingResponse.stargazersCount
+            RepoTable.ownerAvatarUrl to stargazingResponse.owner.avatarUrl
+        }
+    }
+
+    object RepoSyncJobsTable : Table<Nothing>("repo_sync_jobs") {
+        val id by uuid("id").primaryKey()
+        val userId by uuid("user_id")
+        val completed by boolean("completed")
+        val createdAt by datetime("created_at")
+        val error by text("error")
+        val progressPercent by float("progress_percent")
+        val status by text("status")
     }
 
     fun getRepoSyncJobUsingId(jobId: UUID): RepoSyncJob {

@@ -12,10 +12,11 @@ import io.taggit.common.Lenses.tagStringLens
 import io.taggit.common.Lenses.userUpdateLens
 import io.taggit.common.config
 import io.taggit.common.toUUID
-import io.taggit.db.DAO.getRepoSyncJobUsingId
+import io.taggit.db.Dao.getRepoSyncJobUsingId
 import io.taggit.db.DbMigrationService
 import io.taggit.services.TaggitService.addTag
 import io.taggit.services.TaggitService.deleteTag
+import io.taggit.services.TaggitService.deleteUser
 import io.taggit.services.TaggitService.getAllTags
 import io.taggit.services.TaggitService.getUser
 import io.taggit.services.TaggitService.getUserReposPaged
@@ -110,6 +111,13 @@ fun main() {
                         , userUpdateLens(request)
                     ).asJsonObject().asPrettyJsonString()
                 )
+            },
+            "/user/{userId}" bind DELETE to { request ->
+                deleteUser(
+                    request.path("userId")?.toUUID()
+                        ?: throw IllegalArgumentException("userId param cannot be left empty")
+                )
+                Response(ACCEPTED)
             },
             "/user/{userId}/repos" bind GET to { request ->
                 Response(OK).body(

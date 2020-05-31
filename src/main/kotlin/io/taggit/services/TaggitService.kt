@@ -1,22 +1,27 @@
 package io.taggit.services
 
 import io.taggit.common.*
-import io.taggit.db.DAO
-import io.taggit.db.DAO.completeRepoSyncJob
-import io.taggit.db.DAO.createNewRepoSyncJob
-import io.taggit.db.DAO.deleteTagFromRepo
-import io.taggit.db.DAO.getAllDistinctTags
-import io.taggit.db.DAO.getCurrentUserByGithubUserId
-import io.taggit.db.DAO.getGitStarUser
-import io.taggit.db.DAO.getMostRecentUnfinishedRepoSyncJob
-import io.taggit.db.DAO.getRepoSyncJobUsingId
-import io.taggit.db.DAO.getUserReposByTags
-import io.taggit.db.DAO.getUserToken
-import io.taggit.db.DAO.insertGitstarsUser
-import io.taggit.db.DAO.insertTagInRepo
-import io.taggit.db.DAO.updateGitStarUser
-import io.taggit.db.DAO.updateGitstarsUser
-import io.taggit.db.DAO.updateRepoSyncJobProgressAndStatus
+import io.taggit.db.Dao
+import io.taggit.db.Dao.UsersTable
+import io.taggit.db.Dao.completeRepoSyncJob
+import io.taggit.db.Dao.createNewRepoSyncJob
+import io.taggit.db.Dao.deleteGitStarUser
+import io.taggit.db.Dao.deleteTagFromRepo
+import io.taggit.db.Dao.getAllDistinctTags
+import io.taggit.db.Dao.getCurrentUserByGithubUserId
+import io.taggit.db.Dao.getGitStarUser
+import io.taggit.db.Dao.getMostRecentUnfinishedRepoSyncJob
+import io.taggit.db.Dao.getRepoSyncJobUsingId
+import io.taggit.db.Dao.getUserRepos
+import io.taggit.db.Dao.getUserReposByTags
+import io.taggit.db.Dao.getUserToken
+import io.taggit.db.Dao.insertGitstarsUser
+import io.taggit.db.Dao.insertRepo
+import io.taggit.db.Dao.insertTagInRepo
+import io.taggit.db.Dao.updateGitStarUser
+import io.taggit.db.Dao.updateGitstarsUser
+import io.taggit.db.Dao.updateRepoSyncJobError
+import io.taggit.db.Dao.updateRepoSyncJobProgressAndStatus
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import me.liuwj.ktorm.dsl.eq
@@ -37,10 +42,10 @@ object TaggitService {
         } else {
             insertGitstarsUser(githubUser, token)
         }
-        return DAO.UsersTable.select(DAO.UsersTable.id).where {
-            DAO.UsersTable.githubUserId eq githubUser.id
+        return UsersTable.select(UsersTable.id).where {
+            UsersTable.githubUserId eq githubUser.id
         }
-            .map { queryRowSet -> queryRowSet[DAO.UsersTable.id] }[0]!!
+            .map { queryRowSet -> queryRowSet[UsersTable.id] }[0]!!
     }
 
     fun getUser(userId: UUID): GitstarUser {
@@ -49,6 +54,10 @@ object TaggitService {
 
     fun updateUser(userId: UUID, update: GitStarUserUpdate): GitstarUser {
         return updateGitStarUser(userId, update)[0]
+    }
+
+    fun deleteUser(userId: UUID) {
+        deleteGitStarUser(userId)
     }
 
     fun getUserReposPaged(userId: UUID, pageNm: Int?, pageSize: Int?): PagedResponse<GitStarsRepo> {
@@ -68,7 +77,7 @@ object TaggitService {
             }
         }
         return try {
-            DAO.getUserReposPaged(userId, offset, limit)
+            Dao.getUserReposPaged(userId, offset, limit)
         } catch (ex: Exception) {
             println(ex.localizedMessage)
             PagedResponse(emptyList(), Constants.DEFAULT_PAGE_NM, Constants.DEFAULT_PAGE_SIZE, 0)
@@ -80,9 +89,16 @@ object TaggitService {
         val syncJob = getMostRecentUnfinishedRepoSyncJob(userId)
         GlobalScope.launch {
             val token = getUserToken(userId)
-            updateUserRepos(userId, token, syncJob.id)
-            updateRepoSyncJobProgressAndStatus("Update completed!", 1.0F, syncJob.id)
-            completeRepoSyncJob(syncJob.id)
+            if (token.isNullOrEmpty()) {
+                updateRepoSyncJobError(
+                    "No user access token found, this is possibly due to user being deleted",
+                    syncJob.id
+                )
+            } else {
+                updateUserRepos(userId, token, syncJob.id)
+                updateRepoSyncJobProgressAndStatus("Update completed!", 1.0F, syncJob.id)
+                completeRepoSyncJob(syncJob.id)
+            }
         }
         return syncJob.id
     }
@@ -95,7 +111,7 @@ object TaggitService {
         try {
             logger.info { "Getting current syncd user repos for userId: $userId" }
             updateRepoSyncJobProgressAndStatus("Checking for pre syncd repos", 0.3F, syncJobId)
-            val currentUserRepoIds = DAO.getUserRepos(userId)
+            val currentUserRepoIds = getUserRepos(userId)
                 .map { it.repoId }
             updateRepoSyncJobProgressAndStatus("Pulling current stargazing data from Github", 0.6F, syncJobId)
             logger.info { "Pulling user stargazing data from github" }
@@ -106,7 +122,7 @@ object TaggitService {
                 if (currentUserRepoIds.notContains(it.id)) {
                     // only add the repo for the user if not previously added
                     logger.debug { "Previously unsyncd repo ${it.name} found, syncing..." }
-                    DAO.insertRepo(it, userId)
+                    insertRepo(it, userId)
                     logger.debug { "done!" }
                 }
             }
