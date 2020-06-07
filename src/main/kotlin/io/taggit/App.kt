@@ -116,7 +116,7 @@ fun main() {
                     request.path("userId")?.toUUID()
                         ?: throw IllegalArgumentException("userId param cannot be left empty")
                 )
-                Response(ACCEPTED)
+                Response(OK)
             },
             "/user/{userId}/repos" bind GET to { request ->
                 Response(OK).body(

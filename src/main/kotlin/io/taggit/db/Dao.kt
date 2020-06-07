@@ -10,6 +10,7 @@ import me.liuwj.ktorm.schema.*
 import me.liuwj.ktorm.support.postgresql.PostgreSqlDialect
 import org.http4k.format.Jackson.asA
 import org.http4k.format.Jackson.asJsonObject
+import org.intellij.lang.annotations.Language
 import java.time.LocalDateTime
 import java.util.*
 
@@ -35,12 +36,11 @@ object Dao {
         val lastLoginAt by datetime("last_login_at")
         val createdAt by datetime("created_at")
         val updatedAt by datetime("updated_at")
-        val deleted_at by datetime("deleted_at")
     }
 
     fun getUserToken(userId: UUID): String? {
         return UsersTable.select(UsersTable.accessToken)
-            .where { (UsersTable.id eq userId) and (UsersTable.deleted_at.isNull()) }
+            .where { (UsersTable.id eq userId) }
             .map { row -> row[UsersTable.accessToken] }[0]
     }
 
@@ -94,7 +94,7 @@ object Dao {
 
     fun getGitStarUser(userId: UUID): List<GitstarUser> {
         return UsersTable.select()
-            .where { (UsersTable.id eq userId) and (UsersTable.deleted_at.isNull()) }
+            .where { UsersTable.id eq userId }
             .map { row ->
                 GitstarUser(
                     id = row[UsersTable.id]!!,
@@ -112,7 +112,7 @@ object Dao {
 
     fun getCurrentUserByGithubUserId(githubUserId: Long): List<GitstarUser> {
         return UsersTable.select()
-            .where { (UsersTable.githubUserId eq githubUserId) and (UsersTable.deleted_at.isNull()) }
+            .where { UsersTable.githubUserId eq githubUserId }
             .map { row ->
                 GitstarUser(
                     id = row[UsersTable.id]!!,
@@ -138,17 +138,9 @@ object Dao {
     }
 
     fun deleteGitStarUser(userId: UUID) {
-        val nativeSql = """
-            update users
-            set deleted_at = now()
-            where id = '$userId'
-        """.trimIndent()
-
-        db.useConnection {conn ->
-            conn.prepareStatement(nativeSql).use {ps ->
-                ps.executeUpdate()
-            }
-        }
+        RepoTable.delete { RepoTable.userId eq userId }
+        RepoSyncJobsTable.delete { RepoSyncJobsTable.userId eq userId }
+        UsersTable.delete { UsersTable.id eq userId }
     }
 
     object RepoTable : Table<Nothing>("repo") {

@@ -4,14 +4,14 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import org.http4k.core.Body
 import org.http4k.format.Jackson.auto
 import org.http4k.lens.Query
+import org.http4k.lens.boolean
 import org.http4k.lens.int
 import org.http4k.lens.string
 import java.time.LocalDateTime
 import java.util.*
 
 object Constants {
-    // For the view api, the default page number will always be one, however we decrement this value before hitting the
-    // database.
+    // For the view api, the default page number will always be one, however we decrement this value before hitting the database.
     const val DEFAULT_PAGE_NM = 1
     const val DEFAULT_PAGE_SIZE = 50
 }

@@ -57,7 +57,9 @@ object TaggitService {
     }
 
     fun deleteUser(userId: UUID) {
+        logger.info { "Deleting all data for user: $userId" }
         deleteGitStarUser(userId)
+        logger.info { "Deleted all data for user: $userId" }
     }
 
     fun getUserReposPaged(userId: UUID, pageNm: Int?, pageSize: Int?): PagedResponse<GitStarsRepo> {
